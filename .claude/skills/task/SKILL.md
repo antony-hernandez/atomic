@@ -253,6 +253,25 @@ Agregar al brief la sección **REUSO**:
 
 Si algo "no existe", buscar el análogo más cercano en CodeGraph y referenciarlo en el brief como patrón a seguir.
 
+**Regla adicional — impacto antes de modificar:**
+
+Antes de modificar cualquier componente existente (especialmente estilos, estructura de template, o @Input/Output), verificar su blast radius:
+
+```
+codegraph_impact(symbol: "<NombreComponente>")
+```
+
+Si el componente es usado en más de 3 lugares → **no modificar directamente**. En su lugar:
+- Agregar un `@Input()` nuevo que active el comportamiento diferente (sin afectar usos existentes)
+- Crear un componente nuevo que extienda o envuelva el existente
+- Agregar una clase CSS nueva en lugar de modificar la existente
+
+Agregar al brief bajo REUSO:
+```
+⚠️  <NombreComponente> — se usa en <N> lugares — no modificar estilos/estructura directamente
+    Estrategia: <@Input nuevo | componente wrapper | clase CSS aditiva>
+```
+
 ## Durante la implementación
 
 - **No agregar nada que no esté en el brief** — si surge algo que parece necesario pero no está en el spec, pausar y preguntar
