@@ -45,6 +45,30 @@ Esto carga: la tarea, la HU padre, la Spec Técnica en Confluence, el FRD (si ex
 
 **Cloud ID Atlassian:** `atomchat.atlassian.net`
 
+## Implementación
+
+### Gate de reuso — ejecutar ANTES de escribir código
+
+Para cada componente, enum, servicio o mapper en el brief:
+```
+codegraph_search("<NombreExacto>")              // ¿existe?
+codegraph_context(task: "<descripción>")        // ¿cómo funciona lo relacionado?
+```
+Ejecutar en paralelo. **Ningún código nuevo hasta que CodeGraph confirme que no existe.**
+
+Si el task toca audiencias/condiciones (FE): buscar siempre `audience-condition.mapper`, `condition-row`, `stageTypeControl`.
+Si el task toca validaciones/triggers (BE): buscar siempre `filter-condition-group-schema`, `on-update`.
+
+### Blast radius — ejecutar ANTES de modificar un componente existente
+
+```
+codegraph_impact("<NombreComponente>")
+```
+Si se usa en más de 3 lugares → no modificar directamente. Alternativas:
+- `@Input()` nuevo que active el comportamiento sin afectar usos existentes
+- Componente wrapper
+- Clase CSS aditiva (nunca modificar estilos compartidos)
+
 ## Estrategia de modelos
 
 - **Sonnet** orquesta — razona, decide, revisa
