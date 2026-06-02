@@ -72,12 +72,33 @@ El cross-check detectó ambos mismatches correctamente. No hubo falsos positivos
 
 - El agente detecta pasos faltantes en el task comparado con la spec (mismatch 1 — crítico)
 - El agente detecta criterios sin tarea técnica asociada (mismatch 2 — menor)
-- El cross-check no genera ruido cuando las fuentes son consistentes
 - El momento de interrupción (después de leer todo, antes del brief) es correcto
+
+### Limitación estructural — las decisiones de reunión no están en los docs
+
+Al confirmar el mismatch de CV-452 con el usuario, la respuesta fue: "más o menos, no del todo — pasa mucho que cosas se hablan en reunión pero no llegan a cambiarse en la doc".
+
+Esto revela una limitación inherente al cross-check: **solo puede comparar fuentes escritas**. Las decisiones tomadas verbalmente (reuniones, Slack) son invisibles para el agente. El mismatch detectado puede ser:
+- Una omisión real en el task
+- Algo que el dev ya sabía por contexto verbal
+- Una decisión tomada en reunión que nunca llegó a los docs
+
+**Esto valida el diseño del Paso 4.5 tal como quedó:** el agente pregunta al usuario en lugar de asumir que la spec gana. El dev tiene contexto que los documentos no tienen. La interrupción es correcta; la resolución es del humano.
 
 ### Lecciones para el skill `/task`
 
-1. **El task puede estar desactualizado respecto a la spec** — especialmente en pasos técnicos dentro de un mismo ítem (el trigger tenía 3 sub-pasos, el task listaba 2)
-2. **Criterios de aceptación sin tarea técnica son un riesgo** — pueden quedar sin implementar si el dev trabaja por checkboxes
-3. **La spec técnica de Confluence es la fuente de verdad técnica** — el task es una copia resumida que puede derivar
-4. **Sin FRD en esta HU** — el pipeline funciona igualmente; el cross-check opera sobre lo que hay (Spec vs task/HU)
+1. **El task puede estar desactualizado respecto a la spec** — especialmente en pasos técnicos con sub-ítems
+2. **Criterios sin tarea técnica asociada son un riesgo** — pueden quedar sin implementar
+3. **La spec no es la única fuente de verdad** — decisiones verbales no documentadas son parte del contexto real; el agente no puede acceder a ellas y no debe pretender que puede
+4. **El diseño correcto es preguntar, no decidir** — "FRD gana siempre" sería incorrecto; el dev resuelve con su contexto adicional
+
+### Gaps del proceso GSD en este spike
+
+Este spike no siguió el workflow de GSD completamente:
+- No hubo paso de `research` (enfoques alternativos)
+- El directorio se creó después del experimento, no antes
+- No se usó `gsd_run query commit` para los commits
+- `CONVENTIONS.md` no se actualizó durante el spike
+- Se declaró VALIDATED sin pasar por el checkpoint de verificación humana del workflow
+
+El experimento fue "correr el skill en un task real y observar", no un build tradicional. Para Spike 003, seguir el proceso completo.
