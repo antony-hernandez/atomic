@@ -21,34 +21,7 @@ Esto carga: la tarea, la HU padre, la Spec Técnica en Confluence, el FRD (si ex
 - **Preguntar ante ambigüedad** — si algo no está claro en el spec, preguntar antes de asumir.
 - **Verificar al terminar** — antes de reportar una tarea como completa, confrontar la implementación contra los criterios de aceptación del brief ítem por ítem.
 
-### Frontend (Angular)
-- Reusar componentes de `condition-group`, `condition-row`, `logical-operator` para builders de condiciones
-- Usar `normalizeAudienceGroups` para serialización de grupos
-- Validators de Angular Reactive Forms (`Validators.max`, `Validators.required`, etc.) — no lógica custom en el template
-- Seguir el patrón establecido en listas dinámicas al implementar listas estáticas
-- Los mappers de audiencia van en `audience-condition.mapper.ts`
-- **Suscripciones**: siempre `takeUntil(this.destroy$)` + `Subject<void>` destruido en `ngOnDestroy` — sin `unsubscribe()` manual ni subscriptions huérfanas
-- **@Inputs**: no mutar directamente — crear copia o emitir hacia arriba con `@Output()`
-- **Change detection**: si el componente ya usa `OnPush`, mantenerlo — no bajar a `Default`
-- **Tipos**: extender interfaces existentes con campos opcionales — no crear tipos paralelos para el mismo concepto
-
-### Backend (Cloud Functions)
-- Validaciones con Joi en `filter-condition-group-schema.validation.ts`
-- Lógica de evaluación de condiciones en utils separados por tipo de condición
-- Compatibilidad con payloads legacy siempre — no romper rehidratación existente
-- Typesense: respetar límite de ~100 unidades de complejidad de filtro
-- **Funciones**: una responsabilidad por función — no acumular lógica en el handler principal
-- **Errores**: lanzar errores tipados, nunca retornar `null` silencioso ante fallo
-- **Tipos**: compartir contratos TypeScript con el frontend via tipos en el body del request/response — no duplicar definiciones
-
-### Mobile (React Native)
-- Reusar componentes del design system antes de crear nuevos
-- **Estado**: preferir estado local + Context sobre librerías globales salvo que el estado sea genuinamente compartido
-- **Navegación**: no navegar directamente desde componentes de UI — usar callbacks hacia arriba o hooks de navegación
-- **Suscripciones y listeners**: limpiar siempre en el return de `useEffect`
-- **Tipos**: no usar `any` — si la librería no exporta el tipo, extenderlo o inferirlo con `typeof`
-- **Performance**: evitar funciones y objetos inline en JSX para componentes que se renderizan frecuentemente — usar `useCallback`/`useMemo` donde aplique
-
+<!-- ATOMIC:TECH_SECTIONS -->
 
 ## Integraciones disponibles
 
