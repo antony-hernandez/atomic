@@ -18,6 +18,29 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.8.0] - 2026-06-08
+
+### Added
+- Skill `/task` v1.4.0: leer archivo objetivo antes de ejecutar
+  - Sub-paso explícito: leer el archivo antes de tocar nada, entender estado actual y patrones
+  - Si el estado real difiere del plan → STOP antes de escribir una línea
+
+### Changed
+- Skill `/spec` v1.0.0: estándares de calidad de documentación reforzados
+  - Archivos: rutas verificadas, descripción específica del cambio (no genérica)
+  - Contratos TypeScript: interfaces completas con campos base + nuevos marcados, no esqueletos
+  - ACs: estado inicial → acción → resultado esperado, casos de error incluidos
+
+## [0.7.0] - 2026-06-08
+
+### Added
+- Nuevo skill `/spec` v1.0.0: FRD → Spec Técnica + backlog de Jira
+  - Auditoría activa de fugas en docs generados con IA (ACs genéricos, estados de error ausentes, validaciones vagas, happy path only, contradicciones inter-sección)
+  - CodeGraph integration: mapeo de impacto por HU antes de documentar cualquier cambio
+  - Respeta el documento base — solo toca la sección de cambios técnicos
+  - Clarificación socrática solo para gaps que bloquean decisiones técnicas
+  - Backlog Jira opcional con STOP antes de crear tickets
+
 ## [0.6.0] - 2026-06-08
 
 ### Added

@@ -1,6 +1,6 @@
 ---
 name: task
-version: 1.3.0
+version: 1.4.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
@@ -100,10 +100,11 @@ Reglas del plan:
 **12.** Ejecutar una tarea a la vez, en orden:
 
 Por cada tarea `[ ] Tn`:
-1. Implementar el cambio
-2. Commit atómico: `<tipo>(<scope>): <descripción> [<TICKET-ID>]`
-3. Marcar `[x] Tn` en el plan y reportar progreso: `✓ T1/3 completada`
-4. Si aparece algo no previsto (archivo diferente al esperado, dependencia oculta, comportamiento inesperado) → **STOP**, describir la desviación y esperar decisión antes de continuar
+1. **Leer el archivo objetivo** antes de tocar nada — entender el estado actual, los patrones usados, las dependencias visibles
+2. Si lo que se ve difiere de lo que el plan asumía → **STOP** antes de escribir una sola línea: describir la diferencia y esperar decisión
+3. Implementar el cambio
+4. Commit atómico: `<tipo>(<scope>): <descripción> [<TICKET-ID>]`
+5. Marcar `[x] Tn` en el plan y reportar progreso: `✓ T1/3 completada`
 
 No continuar con `Tn+1` hasta que `Tn` tenga commit.
 

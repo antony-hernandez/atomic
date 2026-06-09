@@ -1,6 +1,6 @@
 {
   "name": "atomic",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "Asistente de desarrollo spec-driven para el equipo de Atom",
   "bin": {
     "atomic": "./packages/cli/src/install.mjs"

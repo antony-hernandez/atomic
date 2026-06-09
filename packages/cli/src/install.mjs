@@ -101,21 +101,28 @@ function extractVersion(content) {
 async function install() {
   // 1. Crear directorios necesarios
   mkdirSync(join(ROOT, ".claude/skills/task"), { recursive: true });
+  mkdirSync(join(ROOT, ".claude/skills/spec"), { recursive: true });
 
   // 2. Copiar skills
   const skillContent = await readTemplate("skills/task/SKILL.md");
   const skillVersion = extractVersion(skillContent);
   const versionLabel = skillVersion ? dim(` v${skillVersion}`) : "";
 
+  const specContent = await readTemplate("skills/spec/SKILL.md");
+  const specVersion = extractVersion(specContent);
+  const specVersionLabel = specVersion ? dim(` v${specVersion}`) : "";
+
   const skills = [
     ["skills/task/SKILL.md",         ".claude/skills/task/SKILL.md",         skillContent],
     ["skills/task/brief-template.md", ".claude/skills/task/brief-template.md", null],
+    ["skills/spec/SKILL.md",         ".claude/skills/spec/SKILL.md",         specContent],
   ];
   for (const [src, dest, preloaded] of skills) {
     const content = preloaded ?? await readTemplate(src);
     writeFileSync(join(ROOT, dest), content);
   }
   console.log(green("  ✓ skill /task") + versionLabel + ` → .claude/skills/task/`);
+  console.log(green("  ✓ skill /spec") + specVersionLabel + ` → .claude/skills/spec/`);
 
   // 3. Crear o actualizar CLAUDE.md (con sección Atomic delimitada)
   const claudeMdPath = join(ROOT, "CLAUDE.md");
@@ -178,7 +185,8 @@ async function install() {
 
   console.log(bold("\n¡Listo! Atomic instalado.\n"));
   console.log("  Uso:");
-  console.log("    /task CV-123    ← carga el brief completo de una tarea\n");
+  console.log("    /task CV-123          ← carga el brief completo de una tarea");
+  console.log("    /spec <URL_FRD>       ← convierte un FRD en spec técnica + backlog\n");
 }
 
 install().catch((err) => {
