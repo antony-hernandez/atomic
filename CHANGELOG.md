@@ -18,6 +18,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.3.0] - 2026-06-08
+
+### Added
+- Pre-push hook que verifica version bump + entrada en CHANGELOG al modificar skills
+- Hook versionado en `packages/cli/hooks/pre-push`, instalable con `npm run setup-dev`
+- Script `setup-dev` en `package.json` para instalar hooks de desarrollo
+
 ## [0.2.0] - 2026-06-08
 
 ### Added
