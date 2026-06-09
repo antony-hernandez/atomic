@@ -31,7 +31,8 @@ npx github:antony-hernandez/atomic
 ```
 
 El installer:
-- Copia el skill `/task` en `.claude/skills/task/`
+- Copia los skills `/task` y `/spec` en `.claude/skills/`
+- Instala un hook de SessionStart que avisa cuando hay updates disponibles
 - Crea o actualiza `CLAUDE.md` con la sección Atomic delimitada (no sobreescribe tu contenido existente)
 - Configura el MCP de CodeGraph en `.claude/settings.json`
 - Avisa qué MCPs de terceros quedan pendientes de conectar
@@ -42,8 +43,9 @@ El installer:
 
 | MCP | Para qué | Cómo instalar |
 |-----|----------|---------------|
-| **Atlassian** | Jira + Confluence | [claude.ai/settings](https://claude.ai/settings) → Integrations → Atlassian |
+| **Atlassian** | Jira + Confluence — sin esto `/task` no funciona | [claude.ai/settings](https://claude.ai/settings) → Integrations → Atlassian |
 | **Figma** | Diseños por HU | [claude.ai/settings](https://claude.ai/settings) → Integrations → Figma |
+| **Context7** | Documentación oficial de librerías para viabilidad técnica | [claude.ai/settings](https://claude.ai/settings) → Integrations → Context7 |
 | **CodeGraph** | Navegación del codebase | Configurado automáticamente por el installer |
 
 ---
@@ -89,7 +91,8 @@ CV-599 (Development subtask)
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
-| `/task <ID>` | v1.0.0 | Brief completo de una tarea de Jira — discovery, contexto, reuso, criterios |
+| `/task <ID>` | v2.1.0 | Brief completo de una tarea de Jira — discovery, cross-check FE↔BE, viabilidad técnica, reuso, criterios |
+| `/spec <URL_FRD>` | v1.3.1 | Convierte un FRD en Spec Técnica + backlog de Jira |
 
 ---
 
@@ -100,15 +103,22 @@ packages/cli/
   src/install.mjs          ← installer (curl | node y npx)
   templates/
     CLAUDE-base.md         ← base que se instala en el proyecto
-    skills/task/
-      SKILL.md             ← skill principal (versionado)
-      brief-template.md    ← template del brief
+    skills/
+      task/
+        SKILL.md           ← skill /task (versionado)
+        brief-template.md  ← template del brief
+      spec/
+        SKILL.md           ← skill /spec (versionado)
     sections/
       frontend-angular.md  ← reglas Angular
       backend-cf.md        ← reglas Cloud Functions
       mobile-rn.md         ← reglas React Native
+    hooks/
+      check-atomic-updates.py  ← SessionStart hook (update check)
   hooks/
     pre-push               ← verifica versioning + changelog al pushear
+.claude-plugin/
+  plugin.json              ← registro de skills para skills.sh
 CHANGELOG.md               ← historial de versiones
 ```
 
