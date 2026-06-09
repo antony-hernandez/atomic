@@ -6,6 +6,9 @@
     "atomic": "./packages/cli/src/install.mjs"
   },
   "type": "module",
+  "scripts": {
+    "setup-dev": "cp packages/cli/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo '✓ git hooks instalados'"
+  },
   "engines": {
     "node": ">=18"
   }

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Atomic pre-push hook
+# Verifica que cambios en skills tengan version bump y entrada en CHANGELOG
+
+set -euo pipefail
+
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+ERRORS=()
+
+# Archivos modificados respecto a origin/main (o todos los commits si es rama nueva)
+REMOTE_REF=$(git rev-parse --verify origin/main 2>/dev/null || echo "")
+if [ -z "$REMOTE_REF" ]; then
+  CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
+else
+  CHANGED=$(git diff --name-only origin/main...HEAD)
+fi
+
+SKILL_TEMPLATES_CHANGED=$(echo "$CHANGED" | grep -E '^packages/cli/templates/skills/.*/SKILL\.md$' || true)
+PKG_CHANGED=$(echo "$CHANGED" | grep -E '^package\.json$' || true)
+CHANGELOG_CHANGED=$(echo "$CHANGED" | grep -E '^CHANGELOG\.md$' || true)
+
+# 1. Si se modificó un skill, verificar que la versión subió
+if [ -n "$SKILL_TEMPLATES_CHANGED" ]; then
+  while IFS= read -r skill_file; do
+    # Obtener versión en HEAD
+    NEW_VERSION=$(grep -E '^version:' "$skill_file" 2>/dev/null | head -1 | awk '{print $2}' || true)
+
+    # Obtener versión en origin/main
+    if [ -n "$REMOTE_REF" ]; then
+      OLD_VERSION=$(git show "origin/main:$skill_file" 2>/dev/null | grep -E '^version:' | head -1 | awk '{print $2}' || true)
+    else
+      OLD_VERSION=""
+    fi
+
+    if [ -z "$NEW_VERSION" ]; then
+      ERRORS+=("❌ $skill_file modificado pero no tiene campo 'version:' en el frontmatter")
+    elif [ -n "$OLD_VERSION" ] && [ "$NEW_VERSION" = "$OLD_VERSION" ]; then
+      ERRORS+=("❌ $skill_file modificado pero la versión sigue en $OLD_VERSION — hacer bump")
+    else
+      echo -e "${GREEN}  ✓ skill version${NC} $skill_file → $NEW_VERSION"
+    fi
+
+    # 2. Verificar que package.json también subió
+    if [ -z "$PKG_CHANGED" ]; then
+      ERRORS+=("❌ $skill_file modificado pero package.json no cambió — hacer bump de versión")
+    fi
+
+    # 3. Verificar que CHANGELOG.md tiene entrada para la nueva versión
+    if [ -n "$NEW_VERSION" ] && [ -n "$CHANGELOG_CHANGED" ]; then
+      PKG_VERSION=$(grep -E '"version"' package.json | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
+      if [ -n "$PKG_VERSION" ] && ! grep -qE "^\#\# \[$PKG_VERSION\]" CHANGELOG.md; then
+        ERRORS+=("❌ CHANGELOG.md no tiene entrada para v$PKG_VERSION")
+      else
+        echo -e "${GREEN}  ✓ changelog${NC} v$PKG_VERSION documentado"
+      fi
+    elif [ -n "$NEW_VERSION" ] && [ -z "$CHANGELOG_CHANGED" ]; then
+      ERRORS+=("❌ skill modificado pero CHANGELOG.md no tiene cambios — documentar la versión nueva")
+    fi
+
+  done <<< "$SKILL_TEMPLATES_CHANGED"
+fi
+
+# 4. Si package.json cambió, verificar que CHANGELOG también
+if [ -n "$PKG_CHANGED" ] && [ -z "$CHANGELOG_CHANGED" ]; then
+  PKG_VERSION=$(grep -E '"version"' package.json | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
+  ERRORS+=("❌ package.json bumpeado a v$PKG_VERSION pero CHANGELOG.md no tiene entrada para esa versión")
+fi
+
+# Resultado
+if [ ${#ERRORS[@]} -gt 0 ]; then
+  echo ""
+  echo -e "${RED}  Pre-push bloqueado:${NC}"
+  for err in "${ERRORS[@]}"; do
+    echo "  $err"
+  done
+  echo ""
+  echo -e "${YELLOW}  Pautas:${NC}"
+  echo "    - Skill PATCH (1.0.x): wording, typo, ejemplo"
+  echo "    - Skill MINOR (1.x.0): regla nueva, sección nueva"
+  echo "    - Skill MAJOR (x.0.0): workflow restructurado, paso removido"
+  echo "    - Siempre: bump package.json + entrada en CHANGELOG.md"
+  echo ""
+  exit 1
+fi
+
+exit 0
