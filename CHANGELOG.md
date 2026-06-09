@@ -18,6 +18,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.23.0] - 2026-06-09
+
+### Changed
+- Skill `/task` v3.2.0: anti-patrones nombrados, scaffolding eliminado
+  - "spec-tunnel": implementar solo el punto de control que el spec documenta — nombrado y con consecuencia
+  - "patrón inventado": mezclar strategies de integración multiplica inconsistencia — nombrado y con consecuencia
+  - Criterio de avance en Fase 2: no se puede planear hasta resolver todos los ❓ Bloqueantes
+  - Scaffolding eliminado (paralelo implícito, prohibiciones que se siguen del orden de fases)
+  - Errores comunes: columna cambiada a "Por qué importa" — errores sin consecuencia no se recuerdan
+
+---
+
 ## [0.22.0] - 2026-06-09
 
 ### Changed
