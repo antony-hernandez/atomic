@@ -1,6 +1,6 @@
 ---
 name: task
-version: 3.0.0
+version: 3.1.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
@@ -72,22 +72,14 @@ codegraph_context(task: "<descripción del cambio>")
 ```
 Ningún código nuevo hasta completar este paso.
 
-**Para tareas FE que agregan o muestran un elemento en un selector, lista o dropdown:**
+**Superficie de cambio completa**: el spec documenta el punto de control más obvio — no todos. Antes de planear, mapear los demás:
+- ¿Qué activa el comportamiento? (flag, condición, guard)
+- ¿Qué alimenta el elemento? (fuente de datos, array de opciones, configuración que define qué aparece o qué se procesa)
+- ¿En cuántos lugares necesita vivir esta lógica? Si es más de uno → verificar si existe un lugar compartido. Si no existe pero el duplicado sería exacto → proponer extracción como primera tarea del plan.
 
-Trazar dos cosas por separado:
-- **¿Qué controla la visibilidad?** — el flag o condición que muestra/oculta el elemento, hasta su origen
-- **¿Qué define las opciones disponibles?** — el array, constante o config que determina qué aparece en ese selector. Verificar que incluye el nuevo elemento.
+**Patrón de integración existente**: antes de introducir una nueva dependencia (servicio, repositorio, instancia), trazar cómo ya se usa en contextos similares (`codegraph_callers`). Seguir el mismo patrón — no inventar uno nuevo.
 
-Un fix que solo toca el gate pero no la fuente de datos deja el bug. Ambas trazas deben quedar reflejadas en el plan.
-
-**Para tareas BE que agregan validaciones o guards:**
-
-- Si la misma lógica de validación va en más de un lugar (estimate + controller, create + update), verificar si existe una función de utilidad compartida. Si no existe pero el duplicado sería exacto o near-identical → proponer la extracción como primera tarea del plan, antes de los cambios que la usan.
-- Si el task requiere llamar a un repositorio o servicio desde dentro de un use case o controller: trazar cómo ese repositorio ya se usa en contextos similares (`codegraph_callers`). ¿Se inyecta por constructor, se instancia con `new`, se usa como singleton? Seguir el mismo patrón — no mezclar strategies de DI. Si el patrón dificulta los tests (no se puede mockear) → surfacearlo en viabilidad técnica.
-
-**Para cualquier tarea:**
-
-Si CodeGraph identifica un **registro central** — array/map/constante que centraliza configuración por tipo — leer una entrada existente completa y documentar su estructura como patrón a seguir. El approach correcto es siempre agregar al registro, no crear lógica ad-hoc en el consumidor.
+Si CodeGraph identifica un **registro central** — array/map/constante que centraliza configuración por tipo — leer una entrada existente completa y documentar su estructura como patrón a seguir. El approach correcto es agregar al registro, no crear lógica ad-hoc en el consumidor.
 
 Verificar blast radius de cada símbolo a modificar:
 ```
@@ -242,8 +234,8 @@ Si hay ⚠️ o ❌ → implementar lo que falta antes de continuar. No pasar al
 | Saltear el STOP del paso 13 | Obligatorio siempre |
 | Incluir archivos en el plan sin verificar con CodeGraph | Verificar antes de presentar el plan |
 | Reportar tarea completa sin compilar | Compilación es obligatoria antes de verificar ACs |
-| FE: solo tocar el flag de visibilidad de un elemento | Trazar también el array/constante que define las opciones disponibles en ese selector |
-| BE: marcar como ⚠️ Asumido una decisión que el spec dejó pendiente de refinamiento | Es ❓ Bloqueante — resolver con el usuario antes de diseñar el plan |
+| Implementar solo el punto de control que menciona el spec | Mapear todos: qué activa el comportamiento, qué lo alimenta, cuántos lugares lo necesitan |
+| Marcar como ⚠️ Asumido una decisión que el spec dejó pendiente de refinamiento | Es ❓ Bloqueante — resolver con el usuario antes de diseñar el plan |
 
 ## Cuándo NO usar
 

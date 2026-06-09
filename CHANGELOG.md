@@ -18,6 +18,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.22.0] - 2026-06-09
+
+### Changed
+- Skill `/task` v3.1.0: principios en lugar de casos específicos en paso 6
+  - Elimina split FE/BE con ejemplos de archivos concretos (estimate + controller, etc.)
+  - "Superficie de cambio completa": el spec documenta un punto de control — mapear todos (qué activa, qué alimenta, cuántos lugares)
+  - "Patrón de integración existente": antes de introducir una dependencia, trazar cómo ya se usa
+  - Errores comunes: reformulados como principios generales, sin referencias a archivos específicos
+
+---
+
 ## [0.21.0] - 2026-06-09
 
 ### Changed
