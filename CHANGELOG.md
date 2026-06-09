@@ -18,6 +18,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.10.0] - 2026-06-08
+
+### Added
+- Skill `/task` v1.6.0: check de retro compat en ejecución BE
+  - Paso 12 sub-paso 3: si la tarea modifica un endpoint/request/response existente → verificar compatibilidad con clientes mobile actuales antes de implementar. Breaking change → STOP y proponer estrategia de versionado
+- Skill `/spec` v1.2.0: retro compat como fuga de auditoría
+  - Patrón de fuga nuevo: HU modifica contrato BE existente sin considerar versiones anteriores de la app mobile
+  - Clasificado como bloqueante — necesita decisión explícita antes de documentar el cambio
+
 ## [0.9.0] - 2026-06-08
 
 ### Added

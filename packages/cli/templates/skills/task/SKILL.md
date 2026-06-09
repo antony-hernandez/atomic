@@ -1,6 +1,6 @@
 ---
 name: task
-version: 1.5.0
+version: 1.6.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
@@ -131,7 +131,8 @@ Reglas del plan:
 Por cada tarea `[ ] Tn`:
 1. **Leer el archivo objetivo** antes de tocar nada — entender el estado actual, los patrones usados, las dependencias visibles
 2. Si lo que se ve difiere de lo que el plan asumía → **STOP** antes de escribir una sola línea: describir la diferencia y esperar decisión
-3. Implementar el cambio
+3. Si la tarea modifica un endpoint, request o response de BE existente → verificar retro compatibilidad: ¿el cambio rompe clientes actuales (app mobile en producción)? Si es un campo nuevo, debe ser opcional con fallback. Si renombra o elimina, es un breaking change — **STOP** y proponer estrategia de versionado antes de continuar
+4. Implementar el cambio
 4. Commit atómico: `<tipo>(<scope>): <descripción> [<TICKET-ID>]`
 5. Marcar `[x] Tn` en el plan y reportar progreso: `✓ T1/3 completada`
 
