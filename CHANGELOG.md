@@ -18,6 +18,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.6.0] - 2026-06-08
+
+### Added
+- Skill `/task` v1.3.0: principio de senior behavior
+  - Sección "Principio guía" explícita: reportar gaps del spec, proponer alternativas ante blast radius alto, cuestionar antes de ejecutar cuando algo no cuadra
+  - 3 entradas nuevas en "Errores comunes": spec incompleto sin preguntar, blast radius ignorado, verificación superficial
+- CLAUDE.md: regla `Senior behavior` en la sección General — aplica a todos los skills y flujos del asistente
+
 ## [0.5.0] - 2026-06-08
 
 ### Added

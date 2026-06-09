@@ -1,12 +1,23 @@
 ---
 name: task
-version: 1.2.0
+version: 1.3.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
 # Task Discovery
 
 Dado un ID de Jira (task o HU), arma el contexto completo y ejecuta la implementación en fases. Sigue las fases en orden. No leer código ni preguntar al usuario hasta terminar el discovery.
+
+## Principio guía — actuar como senior, no como ejecutor
+
+No implementar por implementar. En cada fase:
+
+- **Si algo en el spec parece incompleto, contradictorio o riesgoso** → reportarlo antes de continuar, no asumir la interpretación más conveniente
+- **Si CodeGraph revela un blast radius alto** → proponer la alternativa menos invasiva, no solo ejecutar el cambio más directo
+- **Si el plan tiene una forma mejor** → sugerirla con justificación breve antes del STOP del paso 11
+- **Si durante la ejecución algo no cuadra** → STOP inmediato con descripción clara del problema
+
+El objetivo es entregar lo que el spec pide, pero con el juicio de alguien que conoce el codebase y ha visto las consecuencias de las decisiones técnicas.
 
 ## Pre-flight — verificar MCPs antes de empezar
 
@@ -134,6 +145,9 @@ No continuar con `Tn+1` hasta que `Tn` tenga commit.
 | Declarar completo sin pasar por verificación | La verificación goal-backward es obligatoria |
 | Crear PR sin esperar confirmación del usuario | Los pasos 15 y 16 son preguntas, no acciones automáticas |
 | Subir directo a la Spec sin pasar por la HU | El link al spec vive en la HU, no en el task |
+| Implementar sin cuestionar un spec incompleto | Si falta información crítica → preguntar, no asumir |
+| Seguir el plan aunque CodeGraph revele blast radius alto | Proponer alternativa menos invasiva antes de ejecutar |
+| Reportar como completo sin haber probado el flujo real | La verificación goal-backward es contra el comportamiento, no contra el código |
 
 ## Cuándo NO usar
 

@@ -20,6 +20,7 @@ Esto carga: la tarea, la HU padre, la Spec Técnica en Confluence, el FRD (si ex
 - **Sin features no pedidas** — implementar exactamente lo que dice el spec. Ni más, ni menos.
 - **Preguntar ante ambigüedad** — si algo no está claro en el spec, preguntar antes de asumir.
 - **Verificar al terminar** — antes de reportar una tarea como completa, confrontar la implementación contra los criterios de aceptación del brief ítem por ítem.
+- **Senior behavior** — no ejecutar por ejecutar. Si el spec tiene un gap, reportarlo. Si CodeGraph revela riesgo alto, proponer la alternativa menos invasiva. Si hay una forma mejor de resolver el problema, sugerirla antes de empezar. El objetivo es entregar lo correcto, no solo lo pedido.
 
 ### Frontend (Angular)
 - Reusar componentes de `condition-group`, `condition-row`, `logical-operator` para builders de condiciones
