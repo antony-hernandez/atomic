@@ -1,6 +1,6 @@
 ---
 name: task
-version: 2.0.0
+version: 2.1.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
@@ -47,7 +47,7 @@ Ejecutar en paralelo donde sea posible.
 
 **2. HU padre** — si `hierarchyLevel === -1`, fetch del `parent.key`. Buscar "Documento fuente" en el body: `wiki/x/<tinyId>` o `wiki/spaces/.../pages/<id>`.
 
-**3. Spec técnica** — `getConfluencePage` + footer comments + inline comments (en paralelo). Extraer cambios técnicos y criterios filtrados por `TASK_TYPE`. Buscar link a FRD en el body.
+**3. Spec técnica** — `getConfluencePage` + footer comments + inline comments (en paralelo). Extraer **todos** los cambios técnicos de ambos lados — guardar como `FE_CHANGES` y `BE_CHANGES`. El filtro por `TASK_TYPE` aplica solo para qué se va a implementar, no para qué se lee. Buscar link a FRD en el body.
 
 **4. FRD** (si existe) — `getConfluencePage` + comentarios. Identificar sección `### HU-XX` correspondiente. Extraer Figma node-id específico de esa sección (FE) y criterios funcionales.
 - Si `TASK_TYPE = FE` y no se encontró Figma node-id → registrar como `⚠️ Figma ausente`. No bloqueante pero debe quedar visible en el brief.
@@ -56,7 +56,14 @@ Al leer los docs, anotar señales de spec superficial: solo describe el resultad
 
 ## Fase 2 — Análisis
 
-**5. Cross-check** — comparar criterios del FRD vs task/HU. Si hay mismatches → presentar al usuario y resolver antes de continuar. Si no → silencioso.
+**5. Cross-check**
+
+Verificar dos cosas en paralelo:
+
+- **FRD vs task/HU**: comparar criterios funcionales. Si hay mismatches → presentar al usuario y resolver antes de continuar.
+- **Contratos FE↔BE**: comparar `FE_CHANGES` vs `BE_CHANGES` de la spec buscando valores que cruzan la frontera — enum values, field names, payload keys, nombres de condiciones. Si la spec misma tiene inconsistencias entre los dos lados (ej: FE dice `"last_group"` y BE dice `"last_assigned_group"`) → **❓ Bloqueante**. No implementar hasta resolver cuál es el valor correcto.
+
+Si no hay inconsistencias en ninguno de los dos → silencioso.
 
 **6. Gate de reuso** — para cada entidad técnica mencionada en el spec (componentes, servicios, mappers, tipos), ejecutar en paralelo:
 ```

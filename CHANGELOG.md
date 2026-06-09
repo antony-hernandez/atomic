@@ -18,6 +18,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.17.0] - 2026-06-09
+
+### Added
+- Skill `/task` v2.1.0: verificación de contratos FE↔BE desde la spec
+  - Paso 3: spec técnica se lee completa (FE_CHANGES + BE_CHANGES) — el filtro por TASK_TYPE solo aplica para qué implementar, no para qué leer
+  - Paso 5: cross-check de contratos — compara valores que cruzan la frontera (enum values, field names, payload keys) entre FE_CHANGES y BE_CHANGES. Si la spec tiene inconsistencias entre lados → ❓ Bloqueante antes de implementar
+  - Previene desalineamientos detectados solo en producción cuando FE y BE implementan desde la misma doc con valores distintos
+
 ## [0.16.0] - 2026-06-09
 
 ### Added
