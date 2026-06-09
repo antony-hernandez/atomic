@@ -18,6 +18,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.21.0] - 2026-06-09
+
+### Changed
+- Skill `/task` v3.0.0: reestructuración coherente de Fase 2 — sin parches
+  - Paso 6 renombrado "Análisis del código" (antes "Gate de reuso") — scope expandido para mapear la superficie completa de cambio:
+    - FE: trazar explícitamente el gate de visibilidad Y la fuente de datos del elemento (array/constante que define las opciones); un fix que solo toca el gate deja el bug
+    - BE: detectar lógica duplicada antes de planear y proponer extracción como tarea; trazar el patrón de DI del repositorio antes de instanciarlo
+  - Paso 7 simplificado — primer bullet nuevo: decisiones arquitecturales explícitamente abiertas en el spec → ❓ Bloqueante (antes se clasificaban como ⚠️ Asumido)
+  - Paso 14 limpiado: numeración fija (1-6), STOP de registro central removido (redundante con paso 6), protocolo de scope correction explícito
+  - "Errores comunes": dos entradas nuevas — gate sin fuente de datos (FE) y decisión abierta como asumida (BE)
+
+---
+
 ## [0.20.0] - 2026-06-09
 
 ### Added

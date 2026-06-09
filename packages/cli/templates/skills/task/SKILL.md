@@ -1,6 +1,6 @@
 ---
 name: task
-version: 2.2.0
+version: 3.0.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
@@ -35,7 +35,7 @@ Sin este MCP, el skill no puede leer Jira ni Confluence.
 
 No continuar hasta que el pre-flight pase.
 
-Si context7 no está disponible → continuar, pero en el paso 7 (Viabilidad técnica) no habrá forma de verificar constraints de librerías contra documentación oficial. Anotarlo como `⚠️ Context7 ausente` en el brief si el task involucra tecnologías con límites no triviales.
+Si context7 no está disponible → continuar, pero en el paso 7 no habrá forma de verificar constraints de librerías contra documentación oficial. Anotarlo como `⚠️ Context7 ausente` si el task involucra tecnologías con límites no triviales.
 
 ## Fase 1 — Discovery
 
@@ -52,34 +52,55 @@ Ejecutar en paralelo donde sea posible.
 **4. FRD** (si existe) — `getConfluencePage` + comentarios. Identificar sección `### HU-XX` correspondiente. Extraer Figma node-id específico de esa sección (FE) y criterios funcionales.
 - Si `TASK_TYPE = FE` y no se encontró Figma node-id → registrar como `⚠️ Figma ausente`. No bloqueante pero debe quedar visible en el brief.
 
-Al leer los docs, anotar señales de spec superficial: solo describe el resultado sin archivos ni contratos, asume que los cambios son simples sin analizar dependencias, omite casos de error. No bloquear aquí — registrar para el paso 7.
+Al leer los docs, anotar: señales de spec superficial (solo describe el resultado sin archivos ni contratos, omite casos de error, asume cambios simples sin analizar dependencias) y decisiones de diseño explícitamente abiertas ("pendiente de refinamiento", "a definir"). No bloquear aquí — registrar para el paso 7.
 
 ## Fase 2 — Análisis
 
-**5. Cross-check**
+**5. Cross-check documental**
 
 Verificar dos cosas en paralelo:
 
 - **FRD vs task/HU**: comparar criterios funcionales. Si hay mismatches → presentar al usuario y resolver antes de continuar.
-- **Contratos FE↔BE**: comparar `FE_CHANGES` vs `BE_CHANGES` de la spec buscando valores que cruzan la frontera — enum values, field names, payload keys, nombres de condiciones. Si la spec misma tiene inconsistencias entre los dos lados (ej: FE dice `"last_group"` y BE dice `"last_assigned_group"`) → **❓ Bloqueante**. No implementar hasta resolver cuál es el valor correcto.
+- **Contratos FE↔BE**: comparar `FE_CHANGES` vs `BE_CHANGES` buscando valores que cruzan la frontera — enum values, field names, payload keys, nombres de condiciones. Si la spec tiene inconsistencias entre los dos lados → **❓ Bloqueante**. No implementar hasta resolver cuál es el valor correcto.
 
-Si no hay inconsistencias en ninguno de los dos → silencioso.
+Si no hay inconsistencias → silencioso.
 
-**6. Gate de reuso** — para cada entidad técnica mencionada en el spec (componentes, servicios, mappers, tipos), ejecutar en paralelo:
+**6. Análisis del código** — para cada entidad técnica del spec, ejecutar en paralelo:
 ```
 codegraph_search("<NombreExacto>")
 codegraph_context(task: "<descripción del cambio>")
 ```
-Ningún código nuevo hasta que CodeGraph confirme que no existe. Resultados van en la sección REUSO del brief.
+Ningún código nuevo hasta completar este paso.
 
-Si CodeGraph identifica un **registro central** — un array/map/constante que centraliza configuración por tipo (ej: `ConditionTypePriorities`, un switch exhaustivo, una tabla de handlers) — leer una entrada existente completa y documentar su estructura como **patrón a seguir**. El approach correcto siempre es agregar al registro, nunca crear guards ad-hoc en el código consumidor. Anotar esto explícitamente en el plan del paso 12.
+**Para tareas FE que agregan o muestran un elemento en un selector, lista o dropdown:**
+
+Trazar dos cosas por separado:
+- **¿Qué controla la visibilidad?** — el flag o condición que muestra/oculta el elemento, hasta su origen
+- **¿Qué define las opciones disponibles?** — el array, constante o config que determina qué aparece en ese selector. Verificar que incluye el nuevo elemento.
+
+Un fix que solo toca el gate pero no la fuente de datos deja el bug. Ambas trazas deben quedar reflejadas en el plan.
+
+**Para tareas BE que agregan validaciones o guards:**
+
+- Si la misma lógica de validación va en más de un lugar (estimate + controller, create + update), verificar si existe una función de utilidad compartida. Si no existe pero el duplicado sería exacto o near-identical → proponer la extracción como primera tarea del plan, antes de los cambios que la usan.
+- Si el task requiere llamar a un repositorio o servicio desde dentro de un use case o controller: trazar cómo ese repositorio ya se usa en contextos similares (`codegraph_callers`). ¿Se inyecta por constructor, se instancia con `new`, se usa como singleton? Seguir el mismo patrón — no mezclar strategies de DI. Si el patrón dificulta los tests (no se puede mockear) → surfacearlo en viabilidad técnica.
+
+**Para cualquier tarea:**
+
+Si CodeGraph identifica un **registro central** — array/map/constante que centraliza configuración por tipo — leer una entrada existente completa y documentar su estructura como patrón a seguir. El approach correcto es siempre agregar al registro, no crear lógica ad-hoc en el consumidor.
+
+Verificar blast radius de cada símbolo a modificar:
+```
+codegraph_impact("<NombreComponente>")
+```
+Si se usa en más de 3 lugares → proponer `@Input()` nuevo o función de extensión en lugar de modificar directamente.
 
 **7. Viabilidad técnica** — con el contexto de CodeGraph disponible, evaluar:
 
-- **Scope real vs documentado**: ¿CodeGraph revela blast radius o dependencias que el spec no menciona? ¿Hay archivos que claramente necesitan cambiar pero no están en el spec?
-- **Tecnología identificada**: ¿qué sistema concreto resuelve cada operación del task (Typesense, Firestore, API interna, etc.)? Si no está explícito → preguntar. No asumir.
-- **Constraints de la tecnología**: ¿la implementación propuesta puede alcanzar límites conocidos? (complejidad de query, rate limits, tamaño de payload, cuotas, versiones de API). Si hay dudas sobre el comportamiento o los límites reales → consultar la documentación oficial con context7 antes de asumir.
-- **Approach viable**: ¿la solución que propone el spec es correcta dada la estructura real del código? ¿o requiere un approach distinto al implementarla?
+- **Decisiones arquitecturales abiertas**: ¿el spec deja explícitamente pendiente una decisión de diseño (dónde colocar el código, qué capa tiene la responsabilidad, qué estrategia adoptar)? → **❓ Bloqueante**. No asumir — resolver con el usuario antes de diseñar el plan.
+- **Tecnología identificada**: ¿qué sistema concreto resuelve cada operación del task (Typesense, Firestore, API interna)? Si no está explícito → preguntar.
+- **Constraints de la tecnología**: ¿la implementación puede alcanzar límites conocidos? (complejidad de query, rate limits, tamaño de payload). Si hay dudas → consultar con context7 antes de asumir.
+- **Approach viable**: ¿la solución que propone el spec es correcta dada la estructura real del código? ¿o requiere un approach distinto?
 - **Prerequisites implícitos**: ¿hay cambios previos necesarios que el spec no menciona? (migraciones, contratos nuevos, cambios en otros servicios)
 
 Clasificar cada hallazgo: ❓ Bloqueante / ⚠️ Asumido.
@@ -90,10 +111,10 @@ Clasificar cada hallazgo: ❓ Bloqueante / ⚠️ Asumido.
 
 - ¿Solo documenta el happy path? → ¿qué pasa si falla, si el recurso no existe, si el valor es null/vacío?
 - ¿Menciona validación sin definir las reglas? (¿qué mensaje? ¿qué condición exacta?)
-- ¿Asume que una entidad existe sin especificar qué pasa si no? (grupos, usuarios, registros referenciados)
-- ¿Modifica un contrato BE existente sin especificar compatibilidad con clientes mobile actuales?
+- ¿Asume que una entidad existe sin especificar qué pasa si no?
+- ¿Modifica un contrato BE existente sin especificar compatibilidad con clientes mobile?
 
-Clasificar igual: ❓ Bloqueante / ⚠️ Asumido.
+Clasificar: ❓ Bloqueante / ⚠️ Asumido.
 
 **9.** Compilar brief usando `brief-template.md`. Incluir secciones: REUSO (de CodeGraph), GAPS (de pasos 7 y 8, solo si los hay).
 
@@ -170,10 +191,10 @@ Reglas:
 
 1. Leer el archivo objetivo — entender estado actual, patrones usados, dependencias visibles
 2. Si lo que se ve difiere del plan → **STOP**: describir la diferencia y esperar decisión
-3. Si el plan propone un guard o condicional ad-hoc en un archivo consumidor para un tipo/caso, pero existe un registro central identificado en el paso 6 → **STOP**: el approach correcto es agregar al registro. Actualizar el plan antes de escribir código.
+3. Si al leer se descubre un cambio necesario que el plan no contempla → **STOP**: proponer la tarea adicional con su posición en el plan y esperar confirmación. No improvisar cambios fuera del plan aprobado.
 4. Implementar el cambio siguiendo el patrón existente más cercano — no el más simple de escribir
-4. Commit atómico: `<tipo>(<scope>): <descripción> [<TICKET-ID>]`
-5. Marcar `[x] Tn` y reportar: `✓ T1/N completada`
+5. Commit atómico: `<tipo>(<scope>): <descripción> [<TICKET-ID>]`
+6. Marcar `[x] Tn` y reportar: `✓ T1/N completada`
 
 No avanzar a `Tn+1` hasta que `Tn` tenga commit.
 
@@ -221,6 +242,8 @@ Si hay ⚠️ o ❌ → implementar lo que falta antes de continuar. No pasar al
 | Saltear el STOP del paso 13 | Obligatorio siempre |
 | Incluir archivos en el plan sin verificar con CodeGraph | Verificar antes de presentar el plan |
 | Reportar tarea completa sin compilar | Compilación es obligatoria antes de verificar ACs |
+| FE: solo tocar el flag de visibilidad de un elemento | Trazar también el array/constante que define las opciones disponibles en ese selector |
+| BE: marcar como ⚠️ Asumido una decisión que el spec dejó pendiente de refinamiento | Es ❓ Bloqueante — resolver con el usuario antes de diseñar el plan |
 
 ## Cuándo NO usar
 
