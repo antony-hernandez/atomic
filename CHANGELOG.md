@@ -18,6 +18,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.0] - 2026-06-08
+
+### Added
+- Skill `/task` v1.1.0: fases Plan + Ejecución + Verificación (Atomic es ahora spec-driven end-to-end)
+  - **Fase 4 — Plan**: tareas atómicas ordenadas por dependencia, STOP antes de ejecutar
+  - **Fase 5 — Ejecución**: una tarea a la vez, commit atómico por tarea, protocolo de desviaciones
+  - **Fase 6 — Verificación**: goal-backward contra ACs del brief, no se reporta completo hasta ✅ todos
+
 ## [0.3.0] - 2026-06-08
 
 ### Added
