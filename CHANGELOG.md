@@ -18,6 +18,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.19.0] - 2026-06-09
+
+### Changed
+- Skill `/task` v2.2.0: detección de registros centrales y aplicación de patrones existentes
+  - Paso 6: cuando CodeGraph identifica un registro central (array/map/constante que centraliza config por tipo), leer una entrada existente completa y definir el approach como "agregar al registro" — nunca guards ad-hoc en el consumidor
+  - Paso 14: antes de escribir, verificar que el plan no propone guards en el consumidor cuando existe un registro central. Si lo hace → STOP y corregir el plan
+  - Previene implementaciones que funcionan pero no siguen el patrón del codebase (ej: guards manuales en lugar de registrar en ConditionTypePriorities)
+
 ## [0.18.0] - 2026-06-09
 
 ### Added

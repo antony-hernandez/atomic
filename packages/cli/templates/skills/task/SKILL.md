@@ -1,6 +1,6 @@
 ---
 name: task
-version: 2.1.0
+version: 2.2.0
 description: Use when starting work on any Jira task — before reading code, writing code, or asking the user for context.
 ---
 
@@ -71,6 +71,8 @@ codegraph_search("<NombreExacto>")
 codegraph_context(task: "<descripción del cambio>")
 ```
 Ningún código nuevo hasta que CodeGraph confirme que no existe. Resultados van en la sección REUSO del brief.
+
+Si CodeGraph identifica un **registro central** — un array/map/constante que centraliza configuración por tipo (ej: `ConditionTypePriorities`, un switch exhaustivo, una tabla de handlers) — leer una entrada existente completa y documentar su estructura como **patrón a seguir**. El approach correcto siempre es agregar al registro, nunca crear guards ad-hoc en el código consumidor. Anotar esto explícitamente en el plan del paso 12.
 
 **7. Viabilidad técnica** — con el contexto de CodeGraph disponible, evaluar:
 
@@ -168,7 +170,8 @@ Reglas:
 
 1. Leer el archivo objetivo — entender estado actual, patrones usados, dependencias visibles
 2. Si lo que se ve difiere del plan → **STOP**: describir la diferencia y esperar decisión
-3. Implementar el cambio
+3. Si el plan propone un guard o condicional ad-hoc en un archivo consumidor para un tipo/caso, pero existe un registro central identificado en el paso 6 → **STOP**: el approach correcto es agregar al registro. Actualizar el plan antes de escribir código.
+4. Implementar el cambio siguiendo el patrón existente más cercano — no el más simple de escribir
 4. Commit atómico: `<tipo>(<scope>): <descripción> [<TICKET-ID>]`
 5. Marcar `[x] Tn` y reportar: `✓ T1/N completada`
 
