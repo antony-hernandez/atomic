@@ -18,6 +18,43 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.16.0] - 2026-06-09
+
+### Added
+- Installer: context7 agregado al setup — advertido como recomendado (no bloqueante) junto a Figma
+  - Atlassian: requerido (bloquea /task si no está)
+  - Figma + Context7: recomendados (mejoran el análisis; no bloquean la instalación)
+- Skill `/task` v2.0.0: uso de context7 en paso 7 (viabilidad técnica) para verificar constraints de librerías contra docs oficiales
+  - Si context7 no está disponible → `⚠️ Context7 ausente` en el brief cuando el task involucra tecnologías con límites no triviales
+
+## [0.15.0] - 2026-06-09
+
+### Changed
+- Skill `/task` v2.0.0: reescritura completa — estructura coherente de 8 fases
+  - **Fase 2**: viabilidad técnica unificada post-CodeGraph (scope real vs documentado, tecnología identificada, constraints, approach, prerequisites)
+  - **Fase 3**: auditoría de ACs separada de la compilación del brief — dos pasos distintos
+  - **Fase 7**: compilación obligatoria antes de verificar ACs — detecta errores de tipos antes de reportar tarea completa
+  - Elimina fragmentación de checks de gaps (antes repartidos en pasos 4b, 7, 7-tech)
+  - Numeración continua y limpia (1-18), sin "4b" ni pasos de parche
+
+## [0.14.0] - 2026-06-09
+
+### Added
+- Skill `/task` v1.10.0: evaluación de viabilidad técnica del spec en Fase 1 (paso 4b)
+  - Después de leer todos los docs pero antes de tocar CodeGraph, evalúa si la spec es implementable tal como está escrita
+  - Detecta specs que describen solo el resultado sin el camino técnico, cambios aparentemente simples que podrían requerir muchos más cambios de los documentados, y prerequisites implícitos no mencionados
+  - Si el spec es insuficiente → ❓ Bloqueante antes de continuar, no avanza sobre gaps asumiendo que se resuelven solos
+
+## [0.13.0] - 2026-06-09
+
+### Added
+- Skill `/task` v1.9.0: auditoría de constraints técnicos en Fase 3
+  - Primer check: ¿la tecnología específica está identificada en el spec? Si no está explícito (ej: "buscar usuarios" sin decir si es Typesense, Firestore o la API interna) → pregunta antes de asumir
+  - Para cada operación técnica, verifica si hay límites conocidos que el spec no menciona (complejidad de query, rate limits, tamaños máximos, cuotas, versiones de API)
+  - Detecta asunciones implícitas de "no hay límites" y comportamientos no obvios de la plataforma
+  - Si la tecnología es poco familiar → pregunta al usuario antes de continuar, no asume
+  - Misma clasificación que AC gaps: ❓ Bloqueante / ⚠️ Asumido
+
 ## [0.12.0] - 2026-06-09
 
 ### Added

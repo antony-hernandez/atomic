@@ -168,16 +168,28 @@ async function install() {
   }
 
   const missingMcps = [];
-  if (!settings.mcpServers["plugin:atlassian:atlassian"]) missingMcps.push("Atlassian");
-  if (!settings.mcpServers["plugin:figma:figma"])         missingMcps.push("Figma");
+  if (!settings.mcpServers["plugin:atlassian:atlassian"]) missingMcps.push({ name: "Atlassian", required: true });
+  if (!settings.mcpServers["plugin:figma:figma"])         missingMcps.push({ name: "Figma",     required: false });
+  if (!settings.mcpServers["plugin:context7:context7"])   missingMcps.push({ name: "Context7",  required: false });
 
-  if (missingMcps.length > 0) {
-    console.log(yellow("\n  ⚠️  Setup pendiente — sin esto el skill /task no funciona:\n"));
+  const blocking    = missingMcps.filter(m => m.required);
+  const nonBlocking = missingMcps.filter(m => !m.required);
+
+  if (blocking.length > 0) {
+    console.log(yellow("\n  ⚠️  Requerido — sin esto /task no funciona:\n"));
     console.log("    1. Abrí claude.ai/settings → Integrations");
-    missingMcps.forEach((mcp, i) => {
-      console.log(yellow(`    ${i + 2}. Conectá "${mcp}" → autenticá con tu cuenta`));
+    blocking.forEach((mcp, i) => {
+      console.log(yellow(`    ${i + 2}. Conectá "${mcp.name}" → autenticá con tu cuenta`));
     });
-    console.log(`    ${missingMcps.length + 2}. Reiniciá Claude Code en este proyecto`);
+    console.log(`    ${blocking.length + 2}. Reiniciá Claude Code en este proyecto`);
+    console.log("");
+  }
+
+  if (nonBlocking.length > 0) {
+    console.log(dim("  Recomendado (mejora el análisis técnico):"));
+    nonBlocking.forEach(mcp => {
+      console.log(dim(`    • ${mcp.name} — claude.ai/settings → Integrations`));
+    });
     console.log("");
   }
 
