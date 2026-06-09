@@ -18,18 +18,6 @@ instala Atomic en este proyecto desde https://github.com/antony-hernandez/atomic
 
 Claude descarga los skills, configura los MCPs y actualiza el CLAUDE.md.
 
-### Opciones manuales
-
-```bash
-# skills.sh
-npx skills@latest add antony-hernandez/atomic
-
-# npx directo
-npx github:antony-hernandez/atomic
-
-# curl
-curl -fsSL https://raw.githubusercontent.com/antony-hernandez/atomic/main/packages/cli/src/install.mjs | node
-```
 
 El installer:
 - Copia los skills `/task` y `/spec` en `.claude/skills/`
