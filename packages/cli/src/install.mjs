@@ -102,6 +102,7 @@ async function install() {
   // 1. Crear directorios necesarios
   mkdirSync(join(ROOT, ".claude/skills/task"), { recursive: true });
   mkdirSync(join(ROOT, ".claude/skills/spec"), { recursive: true });
+  mkdirSync(join(ROOT, ".claude/hooks"), { recursive: true });
 
   // 2. Copiar skills
   const skillContent = await readTemplate("skills/task/SKILL.md");
@@ -121,6 +122,10 @@ async function install() {
     const content = preloaded ?? await readTemplate(src);
     writeFileSync(join(ROOT, dest), content);
   }
+  // 2b. Copiar hook de update check
+  const updateHook = await readTemplate("hooks/check-atomic-updates.py");
+  writeFileSync(join(ROOT, ".claude/hooks/check-atomic-updates.py"), updateHook);
+
   console.log(green("  ✓ skill /task") + versionLabel + ` → .claude/skills/task/`);
   console.log(green("  ✓ skill /spec") + specVersionLabel + ` → .claude/skills/spec/`);
 
@@ -155,6 +160,17 @@ async function install() {
   }
 
   settings.mcpServers = settings.mcpServers ?? {};
+  settings.hooks = settings.hooks ?? {};
+  settings.hooks.SessionStart = settings.hooks.SessionStart ?? [];
+  const hasUpdateHook = settings.hooks.SessionStart.some(h =>
+    h.hooks?.some(c => c.command?.includes("check-atomic-updates"))
+  );
+  if (!hasUpdateHook) {
+    settings.hooks.SessionStart.push({
+      hooks: [{ type: "command", command: "python3 .claude/hooks/check-atomic-updates.py", timeout: 5 }]
+    });
+    console.log(green("  ✓ SessionStart hook configurado (update check)"));
+  }
 
   if (!settings.mcpServers.codegraph) {
     settings.mcpServers.codegraph = {

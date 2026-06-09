@@ -18,6 +18,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.18.0] - 2026-06-09
+
+### Added
+- Plugin model: `.claude-plugin/plugin.json` siguiendo el patrón skills.sh de Matt Pocock
+  - Registra los skills `/task` y `/spec` para compatibilidad con el ecosistema skills.sh
+- SessionStart hook: `check-atomic-updates.py` instalado en `.claude/hooks/`
+  - Al iniciar sesión compara versiones locales contra GitHub (timeout 3s, no bloqueante)
+  - Si hay update disponible → `⚡ Atomic — update disponible: /task X → Y` en el systemMessage
+- Installer: copia automática del hook de update check a `.claude/hooks/check-atomic-updates.py`
+  - Registra el hook en `settings.json` bajo `hooks.SessionStart`
+  - Idempotente — no duplica el hook si ya está configurado
+- Templates: hook script en `packages/cli/templates/hooks/` para soporte de instalación remota (curl | node)
+
 ## [0.17.0] - 2026-06-09
 
 ### Added

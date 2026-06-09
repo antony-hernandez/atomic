@@ -1,0 +1,7 @@
+{
+  "name": "atomic",
+  "skills": [
+    "./packages/cli/templates/skills/task",
+    "./packages/cli/templates/skills/spec"
+  ]
+}
