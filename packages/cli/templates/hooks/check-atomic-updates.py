@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-SessionStart hook — compara versiones locales de skills Atomic contra GitHub.
-Si hay una versión nueva disponible, muestra un aviso al inicio de la sesión.
+SessionStart hook — sincroniza skills Atomic contra GitHub automáticamente.
+Si hay una versión nueva, sobreescribe el SKILL.md local sin tocar CLAUDE.md ni settings.json.
 """
 import sys
 import json
@@ -20,18 +20,18 @@ def parse_version(content):
     match = re.search(r"^version:\s*(\S+)", content, re.MULTILINE)
     return match.group(1) if match else None
 
-def fetch_remote_version(skill_name):
+def fetch_remote(skill_name):
     url = f"{RAW_BASE}/{skill_name}/SKILL.md"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "atomic-updater"})
         with urllib.request.urlopen(req, timeout=3) as resp:
-            return parse_version(resp.read().decode("utf-8"))
+            return resp.read().decode("utf-8")
     except Exception:
         return None
 
 def main():
     cwd = os.getcwd()
-    outdated = []
+    updated = []
 
     for skill in SKILLS:
         local_path = os.path.join(cwd, skill["local"])
@@ -43,14 +43,20 @@ def main():
         if not local_v:
             continue
 
-        remote_v = fetch_remote_version(skill["name"])
-        if remote_v and remote_v != local_v:
-            outdated.append(f"/{skill['name']} {local_v} → {remote_v}")
+        remote_content = fetch_remote(skill["name"])
+        if not remote_content:
+            continue
 
-    if outdated:
-        updates = ", ".join(outdated)
+        remote_v = parse_version(remote_content)
+        if remote_v and remote_v != local_v:
+            with open(local_path, "w") as f:
+                f.write(remote_content)
+            updated.append(f"/{skill['name']} {local_v} → {remote_v}")
+
+    if updated:
+        updates = ", ".join(updated)
         print(json.dumps({
-            "systemMessage": f"⚡ Atomic — update disponible: {updates}. Corré `npx github:antony-hernandez/atomic` para actualizar."
+            "systemMessage": f"⚡ Atomic — auto-actualizado: {updates}"
         }))
 
 if __name__ == "__main__":

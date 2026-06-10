@@ -18,6 +18,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.25.0] - 2026-06-09
+
+### Changed
+- Hook `check-atomic-updates.py`: auto-actualización en lugar de aviso manual
+  - Antes: detectaba versión nueva y mostraba "corré `npx github:antony-hernandez/atomic`"
+  - Ahora: sobreescribe el SKILL.md local directamente cuando detecta versión nueva
+  - Solo actualiza los skills (SKILL.md) — no toca CLAUDE.md ni settings.json
+  - Mensaje al inicio de sesión: "⚡ Atomic — auto-actualizado: /task X → Y"
+
+---
+
 ## [0.24.0] - 2026-06-09
 
 ### Changed
