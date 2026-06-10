@@ -22,4 +22,7 @@ for skill in task spec; do
   fi
 done
 
-[ -n "$updated" ] && printf '{"systemMessage": "⚡ Atomic — auto-actualizado: %s"}\n' "$updated"
+if [ -n "$updated" ]; then
+  printf '{"systemMessage": "⚡ Atomic — auto-actualizado: %s"}\n' "$updated"
+fi
+exit 0
