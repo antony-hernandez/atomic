@@ -33,7 +33,7 @@ let SKILLS_DIR = null;
 let TEMPLATES_DIR = null;
 try {
   const __dir = dirname(fileURLToPath(import.meta.url));
-  const skillsCandidate = resolve(__dir, "../../skills");
+  const skillsCandidate = resolve(__dir, "../../../skills");
   if (existsSync(join(skillsCandidate, "task/SKILL.md"))) {
     SKILLS_DIR = skillsCandidate;
   }
