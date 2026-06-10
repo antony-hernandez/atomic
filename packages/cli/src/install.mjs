@@ -1,50 +1,69 @@
 #!/usr/bin/env node
 /**
- * Atomic installer — copia skills, CLAUDE.md y configura MCPs
- * Uso: curl -fsSL https://raw.githubusercontent.com/antony-hernandez/atomic/main/packages/cli/src/install.mjs | node
- * o:  npx github:antony-hernandez/atomic
+ * Atom Developer Skills installer — copia skills, CLAUDE.md y configura MCPs
+ * Uso: curl -fsSL https://raw.githubusercontent.com/antony-hernandez/atom-developer-skills/main/packages/cli/src/install.mjs | node
+ * o:  npx github:antony-hernandez/atom-developer-skills
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-const ATOMIC_START = "<!-- ATOMIC:START — no editar esta sección manualmente -->";
-const ATOMIC_END = "<!-- ATOMIC:END -->";
+const ADS_START = "<!-- ADS:START — no editar esta sección manualmente -->";
+const ADS_END = "<!-- ADS:END -->";
+// Backward compat: detectar marcadores viejos también
+const LEGACY_START = "<!-- ATOMIC:START — no editar esta sección manualmente -->";
+const LEGACY_END = "<!-- ATOMIC:END -->";
 const TECH_PLACEHOLDER = "<!-- ATOMIC:TECH_SECTIONS -->";
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const ROOT = process.cwd();
-const RAW_BASE = "https://raw.githubusercontent.com/antony-hernandez/atomic/main/packages/cli/templates";
+const SKILLS_RAW_BASE = "https://raw.githubusercontent.com/antony-hernandez/atom-developer-skills/main/skills";
+const TEMPLATES_RAW_BASE = "https://raw.githubusercontent.com/antony-hernandez/atom-developer-skills/main/packages/cli/templates";
 
 const green  = (s) => `\x1b[32m${s}\x1b[0m`;
 const yellow = (s) => `\x1b[33m${s}\x1b[0m`;
 const bold   = (s) => `\x1b[1m${s}\x1b[0m`;
 const dim    = (s) => `\x1b[2m${s}\x1b[0m`;
 
-console.log(bold("\n⚡ Atomic — Asistente de desarrollo de Atom\n"));
+console.log(bold("\n⚡ Atom Developer Skills — Asistente de desarrollo de Atom\n"));
 
 // Detectar si corremos desde stdin (curl | node) o desde un archivo real (npx)
-let TEMPLATES = null;
+let SKILLS_DIR = null;
+let TEMPLATES_DIR = null;
 try {
   const __dir = dirname(fileURLToPath(import.meta.url));
-  const candidate = resolve(__dir, "../templates");
-  if (existsSync(join(candidate, "skills/task/SKILL.md"))) {
-    TEMPLATES = candidate;
+  const skillsCandidate = resolve(__dir, "../../skills");
+  if (existsSync(join(skillsCandidate, "task/SKILL.md"))) {
+    SKILLS_DIR = skillsCandidate;
+  }
+  const templatesCandidate = resolve(__dir, "../templates");
+  if (existsSync(join(templatesCandidate, "CLAUDE-base.md"))) {
+    TEMPLATES_DIR = templatesCandidate;
   }
 } catch {
   // import.meta.url no resuelve desde stdin — modo remoto
 }
 
-if (!TEMPLATES) {
-  console.log("  (descargando templates desde GitHub)\n");
+if (!SKILLS_DIR || !TEMPLATES_DIR) {
+  console.log("  (descargando assets desde GitHub)\n");
+}
+
+async function readSkill(relativePath) {
+  if (SKILLS_DIR) {
+    return readFileSync(join(SKILLS_DIR, relativePath), "utf8");
+  }
+  const url = `${SKILLS_RAW_BASE}/${relativePath}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Error al descargar ${url}: HTTP ${res.status}`);
+  return res.text();
 }
 
 async function readTemplate(relativePath) {
-  if (TEMPLATES) {
-    return readFileSync(join(TEMPLATES, relativePath), "utf8");
+  if (TEMPLATES_DIR) {
+    return readFileSync(join(TEMPLATES_DIR, relativePath), "utf8");
   }
-  const url = `${RAW_BASE}/${relativePath}`;
+  const url = `${TEMPLATES_RAW_BASE}/${relativePath}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Error al descargar ${url}: HTTP ${res.status}`);
   return res.text();
@@ -93,64 +112,57 @@ async function buildClaudeMd() {
   return base.replace(TECH_PLACEHOLDER, sections.join("\n"));
 }
 
-function extractVersion(content) {
-  const match = content.match(/^---[\s\S]*?version:\s*(\S+)[\s\S]*?---/);
-  return match ? match[1] : null;
-}
-
 async function install() {
   // 1. Crear directorios necesarios
   mkdirSync(join(ROOT, ".claude/skills/task"), { recursive: true });
   mkdirSync(join(ROOT, ".claude/skills/spec"), { recursive: true });
-  mkdirSync(join(ROOT, ".claude/hooks"), { recursive: true });
 
   // 2. Copiar skills
-  const skillContent = await readTemplate("skills/task/SKILL.md");
-  const skillVersion = extractVersion(skillContent);
-  const versionLabel = skillVersion ? dim(` v${skillVersion}`) : "";
-
-  const specContent = await readTemplate("skills/spec/SKILL.md");
-  const specVersion = extractVersion(specContent);
-  const specVersionLabel = specVersion ? dim(` v${specVersion}`) : "";
+  const skillContent = await readSkill("task/SKILL.md");
+  const specContent  = await readSkill("spec/SKILL.md");
 
   const skills = [
-    ["skills/task/SKILL.md",         ".claude/skills/task/SKILL.md",         skillContent],
-    ["skills/task/brief-template.md", ".claude/skills/task/brief-template.md", null],
-    ["skills/spec/SKILL.md",         ".claude/skills/spec/SKILL.md",         specContent],
+    ["task/SKILL.md",          ".claude/skills/task/SKILL.md",          skillContent],
+    ["task/brief-template.md", ".claude/skills/task/brief-template.md", null],
+    ["spec/SKILL.md",          ".claude/skills/spec/SKILL.md",          specContent],
   ];
   for (const [src, dest, preloaded] of skills) {
-    const content = preloaded ?? await readTemplate(src);
+    const content = preloaded ?? await readSkill(src);
     writeFileSync(join(ROOT, dest), content);
   }
-  // 2b. Copiar hook de update check
-  const updateHook = await readTemplate("hooks/check-atomic-updates.sh");
-  const hookPath = join(ROOT, ".claude/hooks/check-atomic-updates.sh");
-  writeFileSync(hookPath, updateHook);
-  chmodSync(hookPath, 0o755);
 
-  console.log(green("  ✓ skill /task") + versionLabel + ` → .claude/skills/task/`);
-  console.log(green("  ✓ skill /spec") + specVersionLabel + ` → .claude/skills/spec/`);
+  console.log(green("  ✓ skill ads:task") + ` → .claude/skills/task/`);
+  console.log(green("  ✓ skill ads:spec") + ` → .claude/skills/spec/`);
 
-  // 3. Crear o actualizar CLAUDE.md (con sección Atomic delimitada)
+  // 3. Crear o actualizar CLAUDE.md (con sección ADS delimitada)
   const claudeMdPath = join(ROOT, "CLAUDE.md");
   const atomicContent = await buildClaudeMd();
-  const wrappedSection = `${ATOMIC_START}\n${atomicContent}\n${ATOMIC_END}`;
+  const wrappedSection = `${ADS_START}\n${atomicContent}\n${ADS_END}`;
 
   if (!existsSync(claudeMdPath)) {
     writeFileSync(claudeMdPath, wrappedSection + "\n");
     console.log(green("  ✓ CLAUDE.md creado"));
   } else {
     const existing = readFileSync(claudeMdPath, "utf8");
-    if (existing.includes(ATOMIC_START)) {
+    const hasAds    = existing.includes(ADS_START);
+    const hasLegacy = existing.includes(LEGACY_START);
+    if (hasAds) {
       const updated = existing.replace(
-        new RegExp(`${escapeRegex(ATOMIC_START)}[\\s\\S]*?${escapeRegex(ATOMIC_END)}`),
+        new RegExp(`${escapeRegex(ADS_START)}[\\s\\S]*?${escapeRegex(ADS_END)}`),
         wrappedSection
       );
       writeFileSync(claudeMdPath, updated);
-      console.log(green("  ✓ sección Atomic actualizada en CLAUDE.md"));
+      console.log(green("  ✓ sección ADS actualizada en CLAUDE.md"));
+    } else if (hasLegacy) {
+      const updated = existing.replace(
+        new RegExp(`${escapeRegex(LEGACY_START)}[\\s\\S]*?${escapeRegex(LEGACY_END)}`),
+        wrappedSection
+      );
+      writeFileSync(claudeMdPath, updated);
+      console.log(green("  ✓ sección Atomic migrada a ADS en CLAUDE.md"));
     } else {
       writeFileSync(claudeMdPath, existing.trimEnd() + "\n\n" + wrappedSection + "\n");
-      console.log(green("  ✓ sección Atomic agregada a CLAUDE.md existente"));
+      console.log(green("  ✓ sección ADS agregada a CLAUDE.md existente"));
     }
   }
 
@@ -162,17 +174,6 @@ async function install() {
   }
 
   settings.mcpServers = settings.mcpServers ?? {};
-  settings.hooks = settings.hooks ?? {};
-  settings.hooks.SessionStart = settings.hooks.SessionStart ?? [];
-  const hasUpdateHook = settings.hooks.SessionStart.some(h =>
-    h.hooks?.some(c => c.command?.includes("check-atomic-updates"))
-  );
-  if (!hasUpdateHook) {
-    settings.hooks.SessionStart.push({
-      hooks: [{ type: "command", command: "bash .claude/hooks/check-atomic-updates.sh", timeout: 5 }]
-    });
-    console.log(green("  ✓ SessionStart hook configurado (update check)"));
-  }
 
   if (!settings.mcpServers.codegraph) {
     settings.mcpServers.codegraph = {
@@ -194,7 +195,7 @@ async function install() {
   const nonBlocking = missingMcps.filter(m => !m.required);
 
   if (blocking.length > 0) {
-    console.log(yellow("\n  ⚠️  Requerido — sin esto /task no funciona:\n"));
+    console.log(yellow("\n  ⚠️  Requerido — sin esto ads:task no funciona:\n"));
     console.log("    1. Abrí claude.ai/settings → Integrations");
     blocking.forEach((mcp, i) => {
       console.log(yellow(`    ${i + 2}. Conectá "${mcp.name}" → autenticá con tu cuenta`));
@@ -213,13 +214,13 @@ async function install() {
 
   writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 
-  console.log(bold("\n¡Listo! Atomic instalado.\n"));
+  console.log(bold("\n¡Listo! Atom Developer Skills instalado.\n"));
   console.log("  Siguiente paso (requerido):");
-  console.log(yellow("    npx @colbymchenry/codegraph init -i") + dim("  ← indexar el codebase (necesario para /task)"));
+  console.log(yellow("    npx @colbymchenry/codegraph init -i") + dim("  ← indexar el codebase (necesario para ads:task)"));
   console.log(dim("    Corré esto una vez en la raíz del proyecto. Tarda 1-2 min en repos grandes.\n"));
   console.log("  Uso:");
-  console.log("    /task CV-123          ← carga el brief completo de una tarea");
-  console.log("    /spec <URL_FRD>       ← convierte un FRD en spec técnica + backlog\n");
+  console.log("    ads:task CV-123          ← carga el brief completo de una tarea");
+  console.log("    ads:spec <URL_FRD>       ← convierte un FRD en spec técnica + backlog\n");
 }
 
 install().catch((err) => {
