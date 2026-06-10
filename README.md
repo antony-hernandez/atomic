@@ -13,16 +13,15 @@ Das un ID de tarea → ADS lee Jira, sube a la HU, va a Confluence, encuentra el
 Desde cualquier proyecto en Claude Code, escribe:
 
 ```
-instala Atomic en este proyecto desde https://github.com/antony-hernandez/atom-developer-skills
+instala ADS en este proyecto desde https://github.com/antony-hernandez/atom-developer-skills
 ```
 
 Claude descarga los skills, configura los MCPs y actualiza el CLAUDE.md.
 
 
 El installer:
-- Copia los skills `/task` y `/spec` en `.claude/skills/`
-- Instala un hook de SessionStart que avisa cuando hay updates disponibles
-- Crea o actualiza `CLAUDE.md` con la sección Atomic delimitada (no sobreescribe tu contenido existente)
+- Copia los skills `ads:task` y `ads:spec` en `.claude/skills/`
+- Crea o actualiza `CLAUDE.md` con la sección ADS delimitada (no sobreescribe tu contenido existente)
 - Configura el MCP de CodeGraph en `.claude/settings.json`
 - Avisa qué MCPs de terceros quedan pendientes de conectar
 
@@ -32,7 +31,7 @@ El installer:
 
 | MCP | Para qué | Cómo instalar |
 |-----|----------|---------------|
-| **Atlassian** | Jira + Confluence — sin esto `/task` no funciona | [claude.ai/settings](https://claude.ai/settings) → Integrations → Atlassian |
+| **Atlassian** | Jira + Confluence — sin esto `ads:task` no funciona | [claude.ai/settings](https://claude.ai/settings) → Integrations → Atlassian |
 | **Figma** | Diseños por HU | [claude.ai/settings](https://claude.ai/settings) → Integrations → Figma |
 | **Context7** | Documentación oficial de librerías para viabilidad técnica | [claude.ai/settings](https://claude.ai/settings) → Integrations → Context7 |
 | **CodeGraph** | Navegación del codebase | Configurado automáticamente por el installer |
@@ -45,7 +44,7 @@ El installer:
 ads:task CV-123
 ```
 
-Eso es todo. Atomic hace el resto.
+Eso es todo. ADS hace el resto.
 
 **Qué pasa internamente:**
 1. Lee el task de Jira (con comentarios)
@@ -70,7 +69,7 @@ CV-599 (Development subtask)
                  └── Figma — node-id específico de la HU, no el genérico
 ```
 
-**El punto donde otras IAs se pierden:** el FRD tiene un archivo de Figma con node-ids distintos por HU. Atomic identifica la HU correcta y extrae el frame exacto, no el link genérico del header.
+**El punto donde otras IAs se pierden:** el FRD tiene un archivo de Figma con node-ids distintos por HU. ADS identifica la HU correcta y extrae el frame exacto, no el link genérico del header.
 
 **Foco de tarea:** si el task dice `[BACKEND]`, el brief es de backend aunque el spec tenga secciones de frontend.
 
@@ -78,36 +77,34 @@ CV-599 (Development subtask)
 
 ## Skills disponibles
 
-| Skill | Versión | Descripción |
-|-------|---------|-------------|
-| `/task <ID>` | v2.1.0 | Brief completo de una tarea de Jira — discovery, cross-check FE↔BE, viabilidad técnica, reuso, criterios |
-| `ads:spec <URL_FRD>` | v1.3.1 | Convierte un FRD en Spec Técnica + backlog de Jira |
+| Skill | Descripción |
+|-------|-------------|
+| `ads:task <ID>` | Brief completo de una tarea de Jira — discovery, cross-check FE↔BE, viabilidad técnica, reuso, criterios |
+| `ads:spec <URL_FRD>` | Convierte un FRD en Spec Técnica + backlog de Jira |
 
 ---
 
 ## Estructura del repo
 
 ```
+.claude-plugin/
+  plugin.json              ← plugin manifest (name: ads)
+skills/
+  task/
+    SKILL.md               ← skill ads:task
+    brief-template.md      ← template del brief
+  spec/
+    SKILL.md               ← skill ads:spec
 packages/cli/
   src/install.mjs          ← installer (curl | node y npx)
   templates/
     CLAUDE-base.md         ← base que se instala en el proyecto
-    skills/
-      task/
-        SKILL.md           ← skill /task (versionado)
-        brief-template.md  ← template del brief
-      spec/
-        SKILL.md           ← skill /spec (versionado)
     sections/
       frontend-angular.md  ← reglas Angular
       backend-cf.md        ← reglas Cloud Functions
       mobile-rn.md         ← reglas React Native
-    hooks/
-      check-ads-updates.py  ← SessionStart hook (update check)
   hooks/
-    pre-push               ← verifica versioning + changelog al pushear
-.claude-plugin/
-  plugin.json              ← registro de skills para skills.sh
+    pre-push               ← verifica changelog al pushear
 CHANGELOG.md               ← historial de versiones
 ```
 
